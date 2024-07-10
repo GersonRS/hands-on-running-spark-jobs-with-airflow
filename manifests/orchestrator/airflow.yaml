@@ -7,11 +7,11 @@ metadata:
   namespace: cicd
 spec:
   destination:
-    server: 'https://kubernetes.default.svc'
+    server: "https://kubernetes.default.svc"
     namespace: orchestrator
   project: default
   source:
-    repoURL: 'https://airflow.apache.org/'
+    repoURL: "https://airflow.apache.org/"
     targetRevision: 1.8.0
     helm:
       values: |-
@@ -35,7 +35,7 @@ spec:
         dags:
           gitSync:
             enabled: true
-            repo: "git@github.com:GersonRS/challenge-delta-lake-deep-dive.git"
+            repo: "git@github.com:GersonRS/hands-on-running-spark-jobs-with-airflow.git"
             branch: main
             rev: HEAD
             depth: 1
@@ -57,7 +57,7 @@ spec:
           my-webserver-secret:
             data: |
               webserver-secret-key: NzA3YTNiOTE4MzdhYTNjOTQ0N2U5ZTdmMDUyZTZmNGE=
-        
+
     chart: airflow
   syncPolicy:
     automated:
