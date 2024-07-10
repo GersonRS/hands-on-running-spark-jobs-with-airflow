@@ -57,7 +57,7 @@ default_args = {
 
 # [INICIO dag]
 @dag(
-    dag_id="ingestion-from-local-data-file-to-bronze-tables",
+    dag_id="ingestion-from-local-data-file-to-bronze-table",
     default_args=default_args,
     catchup=False,
     schedule_interval="@once",
