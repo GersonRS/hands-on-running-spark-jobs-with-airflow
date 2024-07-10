@@ -1,46 +1,47 @@
 #
-# Author: GersonRS
-# Email: gersonrodriguessantos8@gmail.com
+# Licensed to the Apache Software Foundation (ASF) under one
+# or more contributor license agreements.  See the NOTICE file
+# distributed with this work for additional information
+# regarding copyright ownership.  The ASF licenses this file
+# to you under the Apache License, Version 2.0 (the
+# "License"); you may not use this file except in compliance
+# with the License.  You may obtain a copy of the License at
 #
+#   http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing,
+# software distributed under the License is distributed on an
+# "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+# KIND, either express or implied.  See the License for the
+# specific language governing permissions and limitations
+# under the License.
 """
-Este é um exemplo de DAG que usa SparkKubernetesOperator e SparkKubernetesSensor.
-Neste exemplo, crio duas tarefas que são executadas sequencialmente.
-A primeira tarefa é enviar sparkApplication no cluster Kubernetes.
-E a segunda tarefa é verificar o estado final do sparkApplication que enviou
-no primeiro estado.
+This is an example DAG which uses SparkKubernetesOperator and SparkKubernetesSensor.
+In this example, we create two tasks which execute sequentially.
+The first task is to submit sparkApplication on Kubernetes cluster(the example uses
+spark-pi application).
+and the second task is to check the final state of the sparkApplication that submitted
+in the first state.
+Spark-on-k8s operator is required to be already installed on Kubernetes
+https://github.com/GoogleCloudPlatform/spark-on-k8s-operator
 """
 
 from datetime import timedelta
 
-# [INICIO import_module]
-# O decorator dag; precisaremos disso para instanciar um DAG
-from airflow.decorators import dag
+# [START import_module]
+# The DAG object; we'll need this to instantiate a DAG
+from airflow import DAG
 
-# Operadores; precisamos disso para funcionar!
+# Operators; we need this to operate!
 from airflow.providers.cncf.kubernetes.operators.spark_kubernetes import SparkKubernetesOperator
 from airflow.providers.cncf.kubernetes.sensors.spark_kubernetes import SparkKubernetesSensor
 from airflow.utils.dates import days_ago
 
-# [FIM import_module]
-# Documentação baseada em Markdown que serão renderizados nas páginas Grid , Graph e Calendar.
-doc_md_DAG = """
-# DAG Entrega dos dados que vem da landing para o lake
+# [END import_module]
 
-Este é um exemplo de DAG que usa SparkKubernetesOperator e SparkKubernetesSensor.
-Neste exemplo, crio duas tarefas que são executadas sequencialmente.
-A primeira tarefa é enviar sparkApplication no cluster Kubernetes.
-E a segunda tarefa é verificar o estado final do sparkApplication que enviou no primeiro estado.
-
-## Objetivo desta DAG
-
-* Processar todos os dados da landing referentes aos dados de user, subscription, credit_card e movies e passar para o lake
-
-Execute para testar.
-"""
-
-# [INICIO default_args]
-# Esses argumentos serão basicamete repassados para cada operador
-# Você pode substituí-los pelos valores que quiser durante a inicialização do operador
+# [START default_args]
+# These args will get passed on to each operator
+# You can override them on a per-task basis during operator initialization
 default_args = {
     "owner": "Gersonrs",
     "depends_on_past": False,
@@ -52,89 +53,43 @@ default_args = {
     "retries": 1,
     "retry_delay": timedelta(1),
 }
-# [FIM default_args]
+# [END default_args]
 
+# [START instantiate_dag]
 
-# [INICIO dag]
-@dag(
-    dag_id="ingestion-from-local-data-file-to-bronze-table",
+dag = DAG(
+    "ingestion-from-local-data-file-to-bronze-tables",
     default_args=default_args,
-    catchup=False,
     schedule_interval="@once",
-    max_active_runs=1,
     tags=["spark", "kubernetes", "s3", "sensor", "minio", "bronze"],
-    doc_md=doc_md_DAG,
 )
-def ingestion_from_local_data_file_to_bronze_tables_dag() -> None:
-    """
-    `ingestion_from_local_data_file_to_bronze_tables_dag()` é uma função que define um DAG
-    (Directed Gráfico acíclico) no Apache Airflow. Este DAG é responsável por ingerir
-    dados locais da imagem para o minio. Consiste em duas tarefas:
-    """
+# [END instantiate_dag]
 
-    # [INICIO set_tasks]
+# [START set_tasks]
+# use spark-on-k8s to operate against the data
+# containerized spark application
+# yaml definition to trigger process
+submit = SparkKubernetesOperator(
+    task_id="task_spark_ingestion_file_local_to_bronze_table",
+    namespace="processing",
+    application_file="spark_jobs/ingestion_from_local_data_file_to_bronze_tables.yaml",
+    kubernetes_conn_id="kubernetes_default",
+    do_xcom_push=True,
+    dag=dag,
+)
 
-    # A variável(task) `submit` está criando uma instância da classe
-    # `SparkKubernetesOperator`. Esse operador é responsável por enviar um
-    # `SparkApplication` para execução em um cluster Kubernetes. Atravez da definição
-    # de yaml para acionar o processo, usando o spark-on-k8s para operar com base nos
-    # dados e criando um `SparkApplication` em contêiner.
-    submit = SparkKubernetesOperator(
-        task_id="ingestion_from_local_data_file_to_bronze_tables_submit",
-        namespace="processing",
-        application_file="spark_jobs/ingestion_from_local_data_file_to_bronze_tables.yaml",
-        kubernetes_conn_id="kubernetes_default",
-        do_xcom_push=True,
-        # O parâmetro `params` no `SparkKubernetesOperator` é usado para passar parâmetros
-        # adicionais para o `SparkApplication` que será executado no cluster Kubernetes.
-        # Esses parâmetros podem ser acessados no código do aplicativo Spark.
-        params={
-            "mainApplicationFile": "s3a://scripts/ingestion/ingestion_to_bronze.py",
-            "job_name": "ingestion_from_local_data_file_to_bronze_tables-{{ ts_nodash | lower }}-{{ task_instance.try_number }}",  # noqa: E501
-            "minio_bucket": "curated",
-        },
-        doc_md="""
-        ### Proposta desta tarefa
-
-        * Ser responsável por enviar um `SparkApplication` para execução em um cluster Kubernetes.
-
-        * Definir um yaml para acionar o processo, usando o spark-on-k8s para operar com base nos
-        dados e criando um `SparkApplication` em contêiner.
-        """,
-    )
-
-    # A variável(task) `sensor` está criando uma instância da classe
-    # `SparkKubernetesSensor`. Este sensor é responsável por monitorar o status de um
-    # `SparkApplication` em execução em um cluster Kubernetes. Usando o sensor para ler
-    # e visualizar o resultado do `SparkApplication`, lê do xcom e verifica o par de
-    # status [chave e valor] do `submit`, contenco o nome do `SparkApplication` e
-    # passando para o `SparkKubernetesSensor`.
-    sensor = SparkKubernetesSensor(
-        task_id="ingestion_from_local_data_file_to_bronze_tables_sensor",
-        namespace="processing",
-        application_name="{{task_instance.xcom_pull(task_ids='ingestion_from_local_data_file_to_bronze_tables_submit')['metadata']['name']}}",  # noqa: E501
-        kubernetes_conn_id="kubernetes_default",
-        attach_log=True,
-        doc_md="""
-        ### Proposta desta tarefa
-
-        * Ser responsável por monitorar o status de um `SparkApplication` em execução em um cluster
-        Kubernetes.
-
-        * Usar o sensor para ler e visualizar o resultado do `SparkApplication`.
-
-        * Ler do xcom e verifica o par de status [chave e valor] do `submit`, contenco o nome do
-        `SparkApplication` e passando para o `SparkKubernetesSensor`.
-        """,
-    )
-    # [FIM set_tasks]
-
-    # [INICIO task_sequence]
-    # `submit >> sensor` está definindo a dependência entre a tarefa `submit` e a
-    # tarefa `sensor`. Isso significa que a tarefa `sensor` só começará a ser executada
-    # após a tarefa `submit` for concluída com sucesso.
-    submit >> sensor
-    # [FIM task_sequence]
-
-
-# [FIM dag]
+# monitor spark application
+# using sensor to determine the outcome of the task
+# read from xcom tp check the status [key & value] pair
+sensor = SparkKubernetesSensor(
+    task_id="task_spark_ingestion_file_local_to_bronze_table_monitor",
+    namespace="processing",
+    application_name="{{task_instance.xcom_pull(task_ids='task_spark_ingestion_file_local_to_bronze_table')['metadata']['name']}}",
+    kubernetes_conn_id="kubernetes_default",
+    dag=dag,
+    attach_log=True,
+)
+# [END set_tasks]
+# [START task_sequence]
+submit >> sensor
+# [END task_sequence]
