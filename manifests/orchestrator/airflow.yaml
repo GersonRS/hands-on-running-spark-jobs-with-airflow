@@ -12,7 +12,7 @@ spec:
   project: default
   source:
     repoURL: "https://airflow.apache.org/"
-    targetRevision: 1.8.0
+    targetRevision: 1.14.0
     helm:
       values: |-
         executor: "KubernetesExecutor"
@@ -28,6 +28,8 @@ spec:
           metadataSecretName: airflow-metadata-secret
         postgresql:
           enabled: false
+        pgbouncer:
+          enabled: true
         logs:
           persistence:
             enabled: true

@@ -10,13 +10,13 @@
 <!-- PROJECT SHIELDS -->
 
 [![npm](https://img.shields.io/badge/type-Open%20Project-green?&style=plastic)](https://img.shields.io/badge/type-Open%20Project-green)
-[![GitHub last commit](https://img.shields.io/github/last-commit/GersonRS/challenge-delta-lake-deep-dive?logo=github&style=plastic)](https://github.com/GersonRS/challenge-delta-lake-deep-dive/commits/master)
-[![GitHub Issues](https://img.shields.io/github/issues/gersonrs/challenge-delta-lake-deep-dive?logo=github&style=plastic)](https://github.com/GersonRS/challenge-delta-lake-deep-dive/issues)
-[![GitHub Language](https://img.shields.io/github/languages/top/gersonrs/challenge-delta-lake-deep-dive?&logo=github&style=plastic)](https://github.com/GersonRS/challenge-delta-lake-deep-dive/search?l=python)
-[![GitHub Repo-Size](https://img.shields.io/github/repo-size/GersonRS/challenge-delta-lake-deep-dive?logo=github&style=plastic)](https://img.shields.io/github/repo-size/GersonRS/challenge-delta-lake-deep-dive)
-[![GitHub Contributors](https://img.shields.io/github/contributors/GersonRS/challenge-delta-lake-deep-dive?logo=github&style=plastic)](https://img.shields.io/github/contributors/GersonRS/challenge-delta-lake-deep-dive)
-[![GitHub Stars](https://img.shields.io/github/stars/GersonRS/challenge-delta-lake-deep-dive?logo=github&style=plastic)](https://img.shields.io/github/stars/GersonRS/challenge-delta-lake-deep-dive)
-[![NPM](https://img.shields.io/github/license/GersonRS/challenge-delta-lake-deep-dive?&style=plastic)](LICENSE)
+[![GitHub last commit](https://img.shields.io/github/last-commit/GersonRS/hands-on-running-spark-jobs-with-airflow?logo=github&style=plastic)](https://github.com/GersonRS/hands-on-running-spark-jobs-with-airflow/commits/master)
+[![GitHub Issues](https://img.shields.io/github/issues/gersonrs/hands-on-running-spark-jobs-with-airflow?logo=github&style=plastic)](https://github.com/GersonRS/hands-on-running-spark-jobs-with-airflow/issues)
+[![GitHub Language](https://img.shields.io/github/languages/top/gersonrs/hands-on-running-spark-jobs-with-airflow?&logo=github&style=plastic)](https://github.com/GersonRS/hands-on-running-spark-jobs-with-airflow/search?l=python)
+[![GitHub Repo-Size](https://img.shields.io/github/repo-size/GersonRS/hands-on-running-spark-jobs-with-airflow?logo=github&style=plastic)](https://img.shields.io/github/repo-size/GersonRS/hands-on-running-spark-jobs-with-airflow)
+[![GitHub Contributors](https://img.shields.io/github/contributors/GersonRS/hands-on-running-spark-jobs-with-airflow?logo=github&style=plastic)](https://img.shields.io/github/contributors/GersonRS/hands-on-running-spark-jobs-with-airflow)
+[![GitHub Stars](https://img.shields.io/github/stars/GersonRS/hands-on-running-spark-jobs-with-airflow?logo=github&style=plastic)](https://img.shields.io/github/stars/GersonRS/hands-on-running-spark-jobs-with-airflow)
+[![NPM](https://img.shields.io/github/license/GersonRS/hands-on-running-spark-jobs-with-airflow?&style=plastic)](LICENSE)
 [![Status](https://img.shields.io/badge/status-active-success.svg)](https://img.shields.io/badge/status-active-success.svg)
 
 <p align="center">
@@ -154,15 +154,28 @@ ARGOCD_LB=$(kubectl get services -n cicd -l app.kubernetes.io/name=argocd-server
 # argocd login 192.168.0.200 --username admin --password UbV0FdJ2ZNCD8kxU --insecure
 kubectl get secret argocd-initial-admin-secret -n cicd -o jsonpath="{.data.password}" | base64 -d | xargs -t -I {} argocd login $ARGOCD_LB --username admin --password {} --insecure
 ```
-> caso queira ver o password do argo para acessar a interface web execute este comando: `kubectl get secret argocd-initial-admin-secret -n cicd -o jsonpath="{.data.password}" | base64 -d`
 
 Uma vez feita a autenticação não é necessario adicionar um cluster, pois o argo esta configurado para usar o cluster em que ele esta instalado, ou seja, o cluster local ja esta adicionado como **`--in-cluster`**, bastando apenas adicionar o seu repositorio com o seguinte comando:
 
 ```sh
-argocd repo add git@github.com:GersonRS/big-data-on-k8s.git --ssh-private-key-path ~/.ssh/id_ed25519 --insecure-skip-server-verification
+argocd repo add git@github.com:GersonRS/hands-on-running-spark-jobs-with-airflow.git --ssh-private-key-path ~/.ssh/id_ed25519 --insecure-skip-server-verification
 ```
 
+> caso queira ver o password do argo para acessar a interface web execute este comando: `kubectl get secret argocd-initial-admin-secret -n cicd -o jsonpath="{.data.password}" | base64 -d`
+
 > Lembrando que para este comando funcionar é necessario que você tenha uma `chave ssh` configurada para se conectar com o github no seu computador. Caso não tenha, use [este guia](https://docs.github.com/pt/authentication/connecting-to-github-with-ssh/generating-a-new-ssh-key-and-adding-it-to-the-ssh-agent) para criar uma e [adiciona-la ao github](https://docs.github.com/pt/authentication/connecting-to-github-with-ssh/adding-a-new-ssh-key-to-your-github-account).
+
+Para acessar o argocd pelo IP gerado no Loadbalancer execute o comando:
+
+```sh
+echo http://$ARGOCD_LB
+```
+
+Uma vez que tenha acessado a pagina de autenticação do argocd use o `username` admin e o password gerado na instalação do argocd, executando o comando:
+
+```sh
+kubectl get secret argocd-initial-admin-secret -n cicd -o jsonpath="{.data.password}" | base64 -d
+```
 
 É hora de adicionar as ferramentas necessárias para o pipeline de dados. Para isso, é preciso criar secrets para armazenar senhas e informações confidenciais acessíveis pelas aplicações e processos do Spark. É necessário que eles estejam no namespace onde a aplicação está rodando e também no namespace processing, onde serão executados os processos do spark. Para realizar essa replicação dos secrets em diferentes namespaces, podemos usar o **[Reflactor](https://github.com/EmberStack/kubernetes-reflector)**, que evita a necessidade de recriar os secrets em namespaces diferentes. Para utilizá-lo, basta executar o comando a seguir:
 
@@ -197,7 +210,7 @@ Por fim, instale o Spark e o Airflow, juntamente com suas permissões para execu
 
 ```sh
 # add & update helm list repos
-helm repo add spark-operator https://googlecloudplatform.github.io/spark-on-k8s-operator
+helm repo add spark-operator https://kubeflow.github.io/spark-operator
 helm repo add apache-airflow https://airflow.apache.org/
 helm repo update
 ```

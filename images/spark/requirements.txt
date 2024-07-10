@@ -1,2 +1,2 @@
-delta-spark
+delta-spark==2.2.0
 pathlib

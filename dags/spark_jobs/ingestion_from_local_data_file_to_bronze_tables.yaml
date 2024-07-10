@@ -1,14 +1,19 @@
 apiVersion: "sparkoperator.k8s.io/v1beta2"
 kind: SparkApplication
 metadata:
-  name: ingestion-from-local-data-file-to-bronze-tables
+  name: ingestion-from-local-data-file-to-bronze-tables-{{ ts_nodash\|lower }}-{{ task_instance.try_number }}
+  labels:
+    warehouse_path: processing
+    date: "{{ ds_nodash }}"
   namespace: processing
 spec:
+  arguments:
+    - minio_bucket={{ params.minio_bucket }}
   type: Python
   mode: cluster
   image: "spark:0.1"
   imagePullPolicy: IfNotPresent
-  mainApplicationFile: "local:///app/ingestion_to_bronze.py"
+  mainApplicationFile: "{{ params.mainApplicationFile }}"
   sparkVersion: "3.3.2"
   restartPolicy:
     type: OnFailure

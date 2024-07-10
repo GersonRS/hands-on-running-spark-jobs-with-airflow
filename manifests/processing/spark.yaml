@@ -7,16 +7,16 @@ metadata:
   namespace: cicd
 spec:
   destination:
-    server: 'https://kubernetes.default.svc'
+    server: "https://kubernetes.default.svc"
     namespace: processing
   project: default
   source:
-    repoURL: 'https://googlecloudplatform.github.io/spark-on-k8s-operator'
-    targetRevision: 1.1.27
+    repoURL: "https://kubeflow.github.io/spark-operator"
+    targetRevision: 1.4.2
     helm:
       values: |-
-        image:
-          tag: "v1beta2-1.3.8-3.1.1"
+        webhook:
+          enable: true
     chart: spark-operator
   syncPolicy:
     automated:
