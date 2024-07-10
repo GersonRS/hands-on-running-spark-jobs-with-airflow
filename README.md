@@ -523,18 +523,18 @@ A estrutura de pastas está da seguinte maneira:
 .
 ├── access-control
 ├── dags
-│   └── spark_jobs
+│   └── spark_jobs
 ├── images
-│   └── spark
-│       └── landing
+│   ├── airflow
+│   └── spark
+│       └── landing
 ├── manifests
-│   ├── database
-│   ├── deepstorage
-│   ├── management
-│   ├── misc
-│   ├── monitoring
-│   ├── orchestrator
-│   └── processing
+│   ├── database
+│   ├── deepstorage
+│   ├── management
+│   ├── misc
+│   ├── orchestrator
+│   └── processing
 └── secrets
 # 35 directories, 327 files
 ```
@@ -542,17 +542,32 @@ A estrutura de pastas está da seguinte maneira:
 Serão explicados os arquivos e diretórios na seção de [Edição](#edição).
 
 ---
+
 ### Edição
 
-Nesta seção haverão instruções caso você queira editar o projeto, explicando para que os diretórios são utilizados e também os arquivos de configuração.
+Nesta seção haverá instruções caso você queira editar o projeto, explicando para que os diretórios são utilizados e também os arquivos de configuração.
 
-- **[access-control](/access-control/)** - Diretório contendo todos os arquivos de aplicação do projeto, é criado um diretório `manifests` para que o código da aplicação possa ser isolado em um diretório e facilmente portado para outros projetos, se necessário;
+- **[access-control](/access-control/)** - Diretório contendo configurações relacionadas ao controle de acesso, como permissões e políticas de segurança.
 
-- **[manifests](/manifests/)** - Diretório contendo todos os arquivos de aplicação do projeto, é criado um diretório `manifests` para que o código da aplicação possa ser isolado em um diretório e facilmente portado para outros projetos, se necessário;
+- **[dags](/dags/)** - Diretório onde estão armazenados os DAGs (Directed Acyclic Graphs) do Airflow.
+  - **[spark_jobs](/dags/spark_jobs/)** - Contém os arquivos de definição dos jobs Spark que serão orquestrados pelo Airflow.
 
-  - **[database](/manifests/database/)** - Diretório para guardar os arquivos de configuração das aplicações de database, por exemplo, a configuração de instalação da aplicação **[postgres](/manifests/database/postgres.yaml)**;
+- **[images](/images/)** - Diretório para armazenar as imagens Docker usadas no projeto.
+  - **[airflow](/images/airflow/)** - Contém a definição da imagem Docker personalizada para o Airflow.
+  - **[spark](/images/spark/)** - Contém a definição da imagem Docker personalizada para o Spark.
+    - **[landing](/images/spark/landing/)** - Diretório para armazenar arquivos de dados temporários ou intermediários usados nos jobs Spark.
 
-to do o resto
+- **[manifests](/manifests/)** - Diretório contendo todos os arquivos de configuração para a implantação das diferentes partes da aplicação.
+  - **[database](/manifests/database/)** - Diretório para guardar os arquivos de configuração das aplicações de database, por exemplo, a configuração de instalação da aplicação **[postgres](/manifests/database/postgres.yaml)**.
+  - **[deepstorage](/manifests/deepstorage/)** - Contém configurações para sistemas de armazenamento de dados de longo prazo.
+  - **[management](/manifests/management/)** - Configurações para ferramentas de gerenciamento e monitoramento.
+  - **[misc](/manifests/misc/)** - Arquivos de configuração variados que não se encaixam nas outras categorias.
+  - **[orchestrator](/manifests/orchestrator/)** - Contém arquivos de configuração específicos para o orquestrador de workflow, como o Airflow.
+  - **[processing](/manifests/processing/)** - Configurações para as aplicações de processamento de dados, incluindo jobs Spark.
+
+- **[secrets](/secrets/)** - Diretório para armazenar segredos e credenciais sensíveis que são usadas pelo projeto, como chaves de API e senhas de banco de dados. 
+
+Cada diretório e arquivo de configuração tem um papel específico na estrutura do projeto, garantindo que a organização seja clara e que cada componente possa ser facilmente gerenciado e modificado conforme necessário.
 
 <!-- CONTRIBUTING -->
 
@@ -574,7 +589,7 @@ Contribuições são o que fazem a comunidade open source um lugar incrível par
 
 Entre em contato comigo em um dos seguintes lugares!
 
-- Linkedin em [Gerson Santos](https://www.linkedin.com/in/gerson-santos-a1442a90/)
+- Linkedin em [Gerson Santos](https://www.linkedin.com/in/gersonrsantos/)
 - Instagram [gersonrsantos](https://www.instagram.com/gersonrsantos/)
 
 ---
@@ -583,7 +598,7 @@ Entre em contato comigo em um dos seguintes lugares!
 
 <img alt="License" src="https://img.shields.io/badge/license-MIT-%2304D361?color=rgb(89,101,224)">
 
-Distribuído sob a licença MIT. Veja [LICENSE](LICENSE) para mais informações.
+Distribuído sob a licença Apache License 2.0. Veja [LICENSE](LICENSE) para mais informações.
 
 ### 📱 Social
 
