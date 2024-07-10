@@ -90,7 +90,7 @@ def ingestion_from_local_data_file_to_bronze_tables_dag() -> None:
         # Esses parâmetros podem ser acessados no código do aplicativo Spark.
         params={
             "mainApplicationFile": "s3a://scripts/curated/agroindustrial/nb_carga_gatec_contaminantes.py",  # noqa: E501
-            "job_name": "delivery-data-from-nb-carga-contaminantes-to-snowflake-{{ ts_nodash | lower }}-{{ task_instance.try_number }}",  # noqa: E501
+            "job_name": "ingestion_from_local_data_file_to_bronze_tables-{{ ts_nodash | lower }}-{{ task_instance.try_number }}",  # noqa: E501
             "minio_bucket": "curated",
         },
         doc_md="""

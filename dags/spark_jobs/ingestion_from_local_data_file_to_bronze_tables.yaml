@@ -8,6 +8,7 @@ metadata:
   namespace: processing
 spec:
   arguments:
+    - job_name={{ params.job_name }}
     - minio_bucket={{ params.minio_bucket }}
   type: Python
   mode: cluster
