@@ -89,7 +89,7 @@ def ingestion_from_local_data_file_to_bronze_tables_dag() -> None:
         # adicionais para o `SparkApplication` que será executado no cluster Kubernetes.
         # Esses parâmetros podem ser acessados no código do aplicativo Spark.
         params={
-            "mainApplicationFile": "s3a://scripts/curated/agroindustrial/nb_carga_gatec_contaminantes.py",  # noqa: E501
+            "mainApplicationFile": "s3a://scripts/ingestion/ingestion_to_bronze.py",
             "job_name": "ingestion_from_local_data_file_to_bronze_tables-{{ ts_nodash | lower }}-{{ task_instance.try_number }}",  # noqa: E501
             "minio_bucket": "curated",
         },
